@@ -9,7 +9,7 @@ function apiSearch (_this, query) {
     }
   })
   .then(function (response) {
-    _this.books = response
+    _this.books = response.data.books
   })
 }
 function apiAutocomplate (_this, query) {

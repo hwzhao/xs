@@ -5,6 +5,14 @@ import App from './App'
 import router from './router'
 import axios from 'axios'
 
+Vue.directive('focus', {
+  // 当绑定元素插入到 DOM 中。
+  inserted: function (el) {
+    // 聚焦元素
+    el.focus()
+  }
+})
+
 Vue.config.productionTip = true
 Vue.prototype.$http = axios
 console.log(axios)
