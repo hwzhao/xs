@@ -8,6 +8,10 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
+Vue.filter('cover', function (value) {
+  return value.replace(/^\/agent\//, '')
+})
+
 const store = new Vuex.Store(
   {
     state: {

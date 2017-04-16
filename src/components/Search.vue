@@ -1,7 +1,7 @@
 <template>
   <div class="xs-search-view">
     <header class="xs-search after-boeder">
-      <router-link to='/' class="xs-icon xs-icon-back"></router-link>
+      <a @click='$router.back()' class="xs-icon xs-icon-back"></a>
       <form class="search-form" @submit.prevent="search" >
         <div class="search-box">
           <i class="xs-icon xs-icon-search"></i>
@@ -23,9 +23,9 @@
         </li>
       </ul>
 
-        <div class="" v-if="searchList.length == 0">
-          赶快搜索好书来看吧
-        </div>
+      <div class="" v-if="searchList.length == 0">
+        赶快搜索好书来看吧
+      </div>
     </div>
 
     <ul class="auto after-boeder" v-show="type === 1">
@@ -35,7 +35,7 @@
       搜索中。。。。
     </div>
     <ul class="books after-boeder" v-show="type== 3">
-      <li v-for="book in books" class="after-boeder" v-if="books.length > 0">
+      <li v-for="book in books" class="after-boeder" v-if="books.length > 0" @click="$router.push('/Info/' + book._id)">
         <img :src="book.cover | cover" alt="">
         <div class="">
           <span class="title">{{book.title}}</span>
@@ -70,11 +70,6 @@ export default {
     ...mapState({
       'searchList': state => state.searchList
     })
-  },
-  filters: {
-    cover (value) {
-      return value.replace(/^\/agent\//, '')
-    }
   },
   methods: {
     del (index) {
@@ -135,6 +130,9 @@ export default {
     }
   },
   created () {
+    if (window.localStorage.getItem('searchList') === null) {
+      window.localStorage.setItem('searchList', '[]')
+    }
     this.$store.commit('setSearch', JSON.parse(window.localStorage.getItem('searchList')))
   }
 }
@@ -143,6 +141,9 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
 @import "../styles/style.scss";
+  .xs-search-view {
+    padding-top: 50px;
+  }
   .history {
     padding: 10px 20px;
     .header {
@@ -173,8 +174,12 @@ export default {
   .xs-search {
     display: flex;
     padding: 10px 0;
-    position: relative;
+    position: fixed;
     align-items: center;
+    width: 100%;
+	background-color: #fff;
+	top: 0;
+	z-index: 2;
 
     .xs-icon-back {
       font-size: 25px;
@@ -185,11 +190,11 @@ export default {
 
     .search-form {
       background-color: #f2f2f2;
-      border-radius: 15px;
+      border-radius: 20px;
       padding: 5px;
       flex: 1;
       text-align: left;
-      line-height: 28px;
+      line-height: 20px;
 
       .search-box {
         padding: 0 30px;
@@ -199,7 +204,7 @@ export default {
       .xs-icon-search {
         position: absolute;
         left: 4px;
-        line-height: 28px;
+        line-height: 20px;
       }
 
       .xs-icon-close {
@@ -207,7 +212,7 @@ export default {
         right: 4px;
         top: 0;
         font-size: 24px;
-        line-height: 25px;
+        line-height: 20px;
         color: #a9a9a9;
       }
     }
@@ -217,7 +222,7 @@ export default {
       border: 0;
       width: 100%;
       padding: 0;
-      line-height: 24px;
+      line-height: 20px;
       color: #585858;
       &:focus {
         outline: 0;
@@ -226,9 +231,9 @@ export default {
 
     .search-submit {
       padding: 0 15px;
-      font-size: 21px;
+      font-size: 20px;
       vertical-align: middle;
-      line-height: 28px;
+      line-height: 20px;
       color: #e5e5e5;
       &.active {
         color: $default-color;

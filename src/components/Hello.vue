@@ -29,7 +29,6 @@ export default {
     }
   },
   created () {
-    this.$http('/ss')
   }
 }
 </script>
