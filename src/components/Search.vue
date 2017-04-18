@@ -34,8 +34,8 @@
     <div class="" v-if="type === 2">
       搜索中。。。。
     </div>
-    <ul class="books after-boeder" v-show="type== 3">
-      <li v-for="book in books" class="after-boeder" v-if="books.length > 0" @click="$router.push('/Info/' + book._id)">
+    <ul class="books after-boeder" v-show="type== 3" v-if="books.length > 0">
+      <li v-for="book in books" class="after-boeder"  v-if="book.wordCount > 1000" @click="$router.push('/Info/' + book._id)">
         <img :src="book.cover | cover" alt="">
         <div class="">
           <span class="title">{{book.title}}</span>
@@ -87,11 +87,9 @@ export default {
       }
       const self = this
       this.type = 2
-      this.$http.get(`/api/book/fuzzy-search`, {
+      this.$http.get(`https://xs.htmlbiji.com/index.php`, {
         params: {
-          'query': this.query,
-          'start': '0',
-          'limit': '4'
+          'url': `/book/fuzzy-search/?query=${encodeURI(this.query)}&start=0&limit=10`
         }
       })
       .then(function (response) {
@@ -118,9 +116,9 @@ export default {
       if (newvalue.length && this.autoQuert !== this.query) {
         const self = this
         this.type = 1
-        this.$http.get(`/api/book/auto-complete`, {
+        this.$http.get(`https://xs.htmlbiji.com/index.php`, {
           params: {
-            'query': this.query
+            'url': `/book/auto-complete?query=${encodeURI(this.query)}`
           }
         })
         .then(function (response) {
@@ -134,6 +132,10 @@ export default {
       window.localStorage.setItem('searchList', '[]')
     }
     this.$store.commit('setSearch', JSON.parse(window.localStorage.getItem('searchList')))
+    if (this.$route.query.query && this.$route.query.query.length > 0) {
+      this.query = this.$route.query.query
+      this.search()
+    }
   }
 }
 </script>

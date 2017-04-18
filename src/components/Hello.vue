@@ -29,6 +29,7 @@ export default {
     }
   },
   created () {
+    this.$http
   }
 }
 </script>
