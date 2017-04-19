@@ -19,12 +19,25 @@ Vue.filter('cover', function (value) {
 const store = new Vuex.Store(
   {
     state: {
-      searchList: []
+      searchList: [],
+      read: {
+        id: 0,
+        tocs: [],
+        tocId: 0,
+        tocContent: '',
+        nextContent: ''
+      }
     },
     mutations: {
       setSearch (state, search) {
         state.searchList = search
         window.localStorage.setItem('searchList', JSON.stringify(state.searchList))
+      },
+      setRead (state, read) {
+        for (var key in read) {
+          state['read'][key] = read[key]
+        }
+        window.localStorage.setItem('read', JSON.stringify(state.read))
       }
     }
   }

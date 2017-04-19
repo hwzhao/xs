@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Hello from '@/components/Hello'
 import Search from '@/components/Search'
 import Info from '@/components/Info'
+import Read from '@/components/Read'
 
 Vue.use(Router)
 
@@ -22,6 +23,11 @@ export default new Router({
       path: '/Info/:id',
       name: 'Info',
       component: Info
+    },
+    {
+      path: '/Read',
+      name: 'Read',
+      component: Read
     }
   ]
 })

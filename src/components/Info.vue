@@ -34,7 +34,7 @@
       <a class="xs-btn">加入书架</a>
     </div>
     <div class="footer-item">
-      <a class="xs-btn">开始阅读</a>
+      <a class="xs-btn" @click="goRead">开始阅读</a>
     </div>
   </div>
   <transition name="popup">
@@ -71,6 +71,18 @@ export default {
     }
   },
   methods: {
+    goRead () {
+      const read = {
+        id: this.$route.params.id,
+        tocs: this.menus,
+        tocId: 0,
+        tocContent: {
+          body: `<p>${this.info.title}</p>`
+        }
+      }
+      this.$store.commit('setRead', read)
+      this.$router.push('/Read')
+    }
   },
   created () {
     const self = this
@@ -81,15 +93,15 @@ export default {
     })
       .then(function (response) {
         self.info = response.data
-        self.$http.get(`https://xs.htmlbiji.com/index.php`, {
-          params: {
-            'url': `/mix-toc/${self.$route.params.id}`
-          }
-        })
-        .then(function (response) {
-          self.menus = response.data.mixToc.chapters
-        })
       })
+    self.$http.get(`https://xs.htmlbiji.com/index.php`, {
+      params: {
+        'url': `/mix-toc/${self.$route.params.id}`
+      }
+    })
+    .then(function (response) {
+      self.menus = response.data.mixToc.chapters
+    })
   }
 }
 </script>
