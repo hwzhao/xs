@@ -39,12 +39,12 @@
   </div>
   <transition name="popup">
     <div class="popup-view" v-show="showMenu">
-      <div class="menus">
-        <div class="menus-header after-boeder">
+      <div class="tocs">
+        <div class="tocs-header after-boeder">
           目录
         </div>
         <ul>
-          <li v-for="(menu, index) in menus">{{menu.title}}</li>
+          <li v-for="(menu, index) in tocs">{{menu.title}}</li>
         </ul>
       </div>
     </div>
@@ -60,7 +60,7 @@ export default {
   data () {
     return {
       info: '图书详情',
-      menus: [],
+      tocs: [],
       showMenu: false
     }
   },
@@ -74,11 +74,10 @@ export default {
     goRead () {
       const read = {
         id: this.$route.params.id,
-        tocs: this.menus,
         tocId: 0,
-        tocContent: {
-          body: `<p>${this.info.title}</p>`
-        }
+        tocContent: '',
+        nextContent: '',
+        preContent: ''
       }
       this.$store.commit('setRead', read)
       this.$router.push('/Read')
@@ -93,15 +92,15 @@ export default {
     })
       .then(function (response) {
         self.info = response.data
+        self.$http.get(`https://xs.htmlbiji.com/index.php`, {
+          params: {
+            'url': `/mix-toc/${self.$route.params.id}`
+          }
+        })
+        .then(function (response) {
+          self.tocs = response.data.mixToc.chapters
+        })
       })
-    self.$http.get(`https://xs.htmlbiji.com/index.php`, {
-      params: {
-        'url': `/mix-toc/${self.$route.params.id}`
-      }
-    })
-    .then(function (response) {
-      self.menus = response.data.mixToc.chapters
-    })
   }
 }
 </script>
@@ -198,11 +197,11 @@ export default {
     }
   }
 }
-.menus {
+.tocs {
   height: 400px;
   width: 100%;
   overflow-x: auto;
-  .menus-header {
+  .tocs-header {
     line-height: 40px;
     margin-bottom: 15px;
     background-color: #fff;

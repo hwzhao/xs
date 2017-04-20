@@ -58,7 +58,10 @@ export default {
       page: 1,
       count: 1,
       clientWidth: '',
-      fz: 14
+      fz: 14,
+      lg: 1.2,
+      bc: '#123',
+      tocs: []
     }
   },
   methods: {
@@ -66,33 +69,90 @@ export default {
       this.count = count
       this.clientWidth = width
     },
-    getConent () {
-      const self = this
+    getConent (id, callback, from) {
       this.$http.get('https://xs.htmlbiji.com/index.php', {
         params: {
           chapter: 1,
-          url: `/chapter/${this.read.tocs[this.read.tocId].link}?k=2124b73d7e2e1945&t=1468223717`
+          url: `/chapter/${this.tocs[id].link}?k=2124b73d7e2e1945&t=1468223717`
         }
       })
       .then(function (response) {
-        self.$store.commit('setRead', {
-          tocId: self.read.tocId + 1,
-          nextContent: response.data.chapter
-        })
-      })
-    },
-    next () {
-      this.$store.commit('setRead', {
-        tocContent: this.read.nextContent
+        if (callback && typeof callback === 'function') {
+          callback(response.data)
+        }
       })
     }
   },
   watch: {
     page (value) {
-      if (value > this.count) {
-        this.read.tocContent = this.read.nextContent
+      if (value === 0) {
+        // 上一章
+        /*
+        if (！this.read.preContent) {
+          获取上一张
+        }
+        设置上一章节为当前章节
+        */
+        this.$store.commit('setRead', {
+          'preContent': '',
+          'tocContent': this.read.preContent,
+          'nextContent': this.read.tocContent,
+          tocId: this.read.tocId - 1
+        })
         this.page = 1
-        this.getConent()
+      } else if (value > this.count) {
+        // 下一章
+        /*
+        if (！this.read.nextContent) {
+          获取下一张
+        }
+        设置下一章节为当前章节
+        */
+        this.$store.commit('setRead', {
+          'preContent': this.read.tocContent,
+          'tocContent': this.read.nextContent,
+          'nextContent': '',
+          tocId: this.read.tocId + 1
+        })
+        this.page = 1
+      }
+      this.$store.commit('setRead', {
+        page: value
+      })
+    },
+    'read.tocId' (value) {
+      // 检查是否有上一章和下一章 如果没有则获取
+      if (value >= 0) {
+        const self = this
+        if (!this.read.preContent) {
+          this.getConent(value - 1, function (response) {
+            self.$store.commit('setRead', {
+              'preContent': response.chapter
+            })
+          }, 'pre')
+        }
+        if (!this.read.nextContent) {
+          this.getConent(value + 1, function (response) {
+            self.$store.commit('setRead', {
+              'nextContent': response.chapter
+            })
+          }, 'next')
+        }
+      }
+    },
+    'read.tocContent' (value) {
+      if (value === '' || !value.body) {
+        const self = this
+        self.$store.commit('setRead', {
+          'tocContent': {
+            'body': '加载中'
+          }
+        })
+        this.getConent(this.read.tocId, function (response) {
+          self.$store.commit('setRead', {
+            'tocContent': response.chapter
+          })
+        }, 'next')
       }
     }
   },
@@ -101,7 +161,21 @@ export default {
       this.$router.push('/Search')
     }
     this.$store.commit('setRead', JSON.parse(window.localStorage.getItem('read')))
-    this.getConent()
+    const self = this
+    this.$http.get(`https://xs.htmlbiji.com/index.php`, {
+      params: {
+        'url': `/mix-toc/${this.read.id}`
+      }
+    })
+    .then(function (response) {
+      self.tocs = response.data.mixToc.chapters
+      self.getConent(self.read.tocId, function (response) {
+        self.$store.commit('setRead', {
+          'tocContent': response.chapter
+        })
+      }, 'first')
+      self.page = self.read.page
+    })
   }
 }
 </script>
