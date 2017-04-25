@@ -34,7 +34,7 @@
       <a class="xs-btn">加入书架</a>
     </div>
     <div class="footer-item">
-      <a class="xs-btn" @click="goRead">开始阅读</a>
+      <a class="xs-btn" @click="goRead(0)">开始阅读</a>
     </div>
   </div>
   <transition name="popup">
@@ -44,7 +44,7 @@
           目录
         </div>
         <ul>
-          <li v-for="(menu, index) in tocs">{{menu.title}}</li>
+          <li v-for="(menu, index) in tocs" @click="goRead(index)">{{menu.title}}{{index}}</li>
         </ul>
       </div>
     </div>
@@ -71,13 +71,16 @@ export default {
     }
   },
   methods: {
-    goRead () {
+    goRead (index) {
       const read = {
         id: this.$route.params.id,
-        tocId: 0,
+        title: this.info.title,
+        cover: this.info.cover,
+        tocId: index,
         tocContent: '',
         nextContent: '',
-        preContent: ''
+        preContent: '',
+        tocs: this.tocs
       }
       this.$store.commit('setRead', read)
       this.$router.push('/Read')
@@ -85,6 +88,7 @@ export default {
   },
   created () {
     const self = this
+    self.$parent.loading.show = true
     this.$http.get(`https://xs.htmlbiji.com/index.php`, {
       params: {
         'url': `/book/${this.$route.params.id}`
@@ -99,6 +103,7 @@ export default {
         })
         .then(function (response) {
           self.tocs = response.data.mixToc.chapters
+          self.$parent.loading.show = false
         })
       })
   }

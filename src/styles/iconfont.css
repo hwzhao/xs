@@ -16,6 +16,13 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+.xs-icon-loading:before { content: "\e6df"; }
+
+.xs-icon-loading1:before { content: "\e6f4"; }
+
+.xs-icon-loading2:before { content: "\e645"; }
+
+.xs-icon-loading3:before { content: "\e603"; }
 
 .xs-icon-close:before { content: "\e60d"; }
 
