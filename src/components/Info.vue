@@ -30,8 +30,11 @@
 
   </div>
   <div class="footer before-border">
-    <div class="footer-item">
-      <a class="xs-btn">加入书架</a>
+    <div class="footer-item" v-show="!rackId">
+      <a class="xs-btn" @click="joinRack">加入书架</a>
+    </div>
+    <div class="footer-item" v-show="rackId">
+      <a class="xs-btn" @click="removeRack()">书架移除</a>
     </div>
     <div class="footer-item">
       <a class="xs-btn" @click="goRead(0)">开始阅读</a>
@@ -54,12 +57,22 @@
 </template>
 
 <script>
+import util from '@/util'
+import { mapState } from 'vuex'
 import moment from 'moment'
 export default {
   name: 'info',
+  computed: {
+    ...mapState({
+      'bookrack': state => state.bookrack
+    }),
+    rackId () {
+      return util.objectFindByKey(this.bookrack, 'id', this.$route.params.id)
+    }
+  },
   data () {
     return {
-      info: '图书详情',
+      info: {},
       tocs: [],
       showMenu: false
     }
@@ -72,33 +85,55 @@ export default {
   },
   methods: {
     goRead (index) {
-      const read = {
-        id: this.$route.params.id,
-        title: this.info.title,
-        cover: this.info.cover,
-        tocId: index,
-        tocContent: '',
-        nextContent: '',
-        preContent: '',
-        tocs: this.tocs
+      var read = {}
+      if (index === 0 && this.rackId) {
+        read = this.bookrack[this.rackId]
+        read.tocs = this.tocs
+        read.tocContent = ''
+      } else {
+        read = {
+          id: this.$route.params.id,
+          title: this.info.title,
+          cover: this.info.cover,
+          tocId: index,
+          tocContent: '',
+          nextContent: '',
+          preContent: '',
+          tocs: this.tocs
+        }
       }
       this.$store.commit('setRead', read)
       this.$router.push('/Read')
+    },
+    joinRack () {
+      this.$store.commit('addBbookrack', {
+        id: this.info._id,
+        title: this.info.title,
+        cover: this.info.cover,
+        tocId: 0,
+        tocName: this.tocs[0].title,
+        page: 1
+      })
+    },
+    removeRack () {
+      this.$store.commit('delBookrack', this.rackId)
     }
   },
   created () {
     const self = this
+    const id = this.$route.params.id
     self.$parent.loading.show = true
     this.$http.get(`https://xs.htmlbiji.com/index.php`, {
       params: {
-        'url': `/book/${this.$route.params.id}`
+        'url': `/book/${id}`
       }
     })
       .then(function (response) {
         self.info = response.data
+        self.$parent.loading.content = '获取目录'
         self.$http.get(`https://xs.htmlbiji.com/index.php`, {
           params: {
-            'url': `/mix-toc/${self.$route.params.id}`
+            'url': `/mix-toc/${id}`
           }
         })
         .then(function (response) {

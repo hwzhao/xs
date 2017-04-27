@@ -8,19 +8,13 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-// router.beforeEach((to, from, next) => {
-//   if (from.name === 'Read') {
-//     var r = confirm('是否加入书架')
-//     if (r === true) {
-//       console.log(Vue.)
-//       next()
-//     } else {
-//       next()
-//     }
-//   } else {
-//     next()
-//   }
-// })
+router.beforeEach((to, from, next) => {
+  if (window.localStorage.getItem('bookrack') === null) {
+    window.localStorage.setItem('bookrack', '[]')
+  }
+  store.commit('setBookrack', JSON.parse(window.localStorage.getItem('bookrack')))
+  next()
+})
 
 Vue.filter('cover', function (value) {
   if (value) {
@@ -29,7 +23,7 @@ Vue.filter('cover', function (value) {
     return ''
   }
 })
-
+import util from '@/util'
 const store = new Vuex.Store(
   {
     state: {
@@ -62,13 +56,19 @@ const store = new Vuex.Store(
         state.bookrack = bookrack
         window.localStorage.setItem('bookrack', JSON.stringify(state.bookrack))
       },
+      delBookrack (state, id) {
+        state.bookrack.splice(id, 1)
+        window.localStorage.setItem('bookrack', JSON.stringify(state.bookrack))
+      },
       addBbookrack (state, bookrack) {
-        var oldBookrack = state.bookrack.find(function (book) {
-          return book.id === bookrack.id
-        })
-        if (typeof oldBookrack !== 'object') {
+        console.log(1)
+        var id = state.bookrack && util.objectFindByKey(state.bookrack, 'id', bookrack.id)
+        if (id) {
+          state.bookrack.splice(id, 1, bookrack)
+        } else {
           state.bookrack.push(bookrack)
         }
+        console.log(state.bookrack)
         window.localStorage.setItem('bookrack', JSON.stringify(state.bookrack))
       }
     }

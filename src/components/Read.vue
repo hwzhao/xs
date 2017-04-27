@@ -3,7 +3,7 @@
     <div class="head">
       {{read.tocContent.title}}
     </div>
-    <div class="read-content" :style="{'font-size': `${fz}px`}">
+    <div class="read-content" :style="{'font-size': `${fz}px`, 'line-height': lineHeight}">
       <article >
         <section class="read" v-tocContent="{'methods': getCount}" v-html="read.tocContent.body" :style="readStyle" >
         </section>
@@ -27,18 +27,23 @@
 </template>
 
 <script>
+import util from '@/util'
 import { mapState } from 'vuex'
 export default {
   name: 'read',
   computed: {
     ...mapState({
-      'read': state => state.read
+      'read': state => state.read,
+      'bookrack': state => state.bookrack
     }),
     readStyle () {
       return {
         'transform': `translateX(-${(this.page - 1) * this.clientWidth}px)`,
         'transition': (this.page > 1) ? 'all .3s' : 'none'
       }
+    },
+    rackId () {
+      return util.objectFindByKey(this.bookrack, 'id', this.read.id)
     }
   },
   directives: {
@@ -58,8 +63,8 @@ export default {
       page: 1,
       count: 1,
       clientWidth: '',
-      fz: 14,
-      lg: 1.2,
+      fz: 21,
+      lineHeight: 1.8,
       bc: '#123',
       tocs: []
     }
@@ -70,6 +75,7 @@ export default {
       this.clientWidth = width
     },
     getConent (id, callback) {
+      const self = this
       this.$http.get('https://xs.htmlbiji.com/index.php', {
         params: {
           chapter: 1,
@@ -77,8 +83,15 @@ export default {
         }
       })
       .then(function (response) {
-        if (callback && typeof callback === 'function') {
-          callback(response.data)
+        if (response.data.ok) {
+          if (callback && typeof callback === 'function') {
+            callback(response.data)
+          }
+        } else {
+          self.$parent.loading = {
+            show: true,
+            content: response.dara.chapter
+          }
         }
       })
     }
@@ -229,8 +242,7 @@ export default {
     self.page = self.read.page
   },
   beforeRouteLeave (to, from, next) {
-    var r = confirm('是否加入书架')
-    if (r === true) {
+    if (this.rackId) {
       this.$store.commit('addBbookrack', {
         id: this.read.id,
         title: this.read.title,
@@ -241,7 +253,20 @@ export default {
       })
       next()
     } else {
-      next()
+      var r = confirm('是否加入书架')
+      if (r === true) {
+        this.$store.commit('addBbookrack', {
+          id: this.read.id,
+          title: this.read.title,
+          cover: this.read.cover,
+          tocId: this.read.tocId,
+          tocName: this.read.tocContent.title,
+          page: this.read.page
+        })
+        next()
+      } else {
+        next()
+      }
     }
   }
 }

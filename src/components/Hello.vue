@@ -1,9 +1,15 @@
 <template>
   <div class="hello">
     <h2>Vue小说阅读器</h2>
+    <div class="">
+      <router-link to="/search"> <i class="xs-icon xs-icon-search"></i>搜索</router-link>
+    </div>
     <ul>
-      <li v-for="(book, index) in bookrack">{{book.title}}
-        <img :src="book.cover | cover" alt=""></li>
+      <li v-for="(book, index) in bookrack" @click="goRead(book)">
+        {{book.title}}
+        <img :src="book.cover | cover" alt="">
+        {{book.tocName}}{{book.page}}
+      </li>
     </ul>
 
   </div>
@@ -22,12 +28,14 @@ export default {
     return {
     }
   },
-  created () {
-    console.log(window.localStorage.getItem('bookrack'))
-    if (window.localStorage.getItem('bookrack') === null) {
-      window.localStorage.setItem('bookrack', '[]')
+  methods: {
+    goRead (book) {
+      book.tocContent = ''
+      this.$store.commit('setRead', book)
+      this.$router.push('/Read')
     }
-    this.$store.commit('setBookrack', JSON.parse(window.localStorage.getItem('bookrack')))
+  },
+  created () {
   }
 }
 </script>
