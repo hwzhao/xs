@@ -1,27 +1,97 @@
 <template lang="html">
-  <div class="read-view">
+  <div class="read-view" :style="{'background-color': bg}">
     <div class="head">
       {{read.tocContent.title}}
     </div>
     <div class="read-content" :style="{'font-size': `${fz}px`, 'line-height': lineHeight}">
       <article >
-        <section class="read" v-tocContent="{'methods': getCount}" v-html="read.tocContent.body" :style="readStyle" >
+        <section class="read" v-tocContent="{'methods': getCount}" :style="readStyle" >
+          <p v-html="read.tocContent.body"></p>
         </section>
       </article>
     </div>
+    <div class="count" >
+      {{page}}/ {{count}}
+      <div class="time" style="float: right;">
+        {{time}}
+      </div>
+    </div>
+
     <div class="action-view">
       <div class="left" @click="page = page - 1">
 
       </div>
-      <div class="center" @click.stop="fz = fz * 1.1">
+      <div class="center" @click.stop="showOpt = true">
 
       </div>
       <div class="right" @click="page = page + 1">
 
       </div>
     </div>
-    <div class="count" >
-      {{page}}/ {{count}}
+    <div class="option-view" @click="showOpt = false" v-show="showOpt">
+      <div class="head">
+        <router-link to="/" class="xs-icon-back xs-icon"></router-link>
+        <span class="exchange" @click.stop="getSource">
+          换源
+        </span>
+      </div>
+      <div class="source before-border" v-show="showsource">
+        <ul>
+          <li v-for="(item, index) in source" @click.stop="exchangesource(item._id)">
+            <div class="">
+              {{item.name}}
+              {{item.updated | uMoment}}
+              {{item.lastChapter}}
+            </div>
+          </li>
+        </ul>
+      </div>
+      <transition name="popup">
+        <div class="popup-view  after-border" v-show="showMenu">
+          <div class="tocs ">
+            <div class="tocs-header after-boeder">
+              目录
+            </div>
+            <ul>
+              <li v-for="(menu, index) in read.tocs" @click="goRead(index)">{{menu.title}}{{index}}</li>
+            </ul>
+          </div>
+        </div>
+      </transition>
+      <transition name="popup">
+        <div class="rate-view opt-view after-border" v-show="showRate">
+          <div class="header">
+            <a @click="page = 0">上一章</a>
+            <span>{{read.tocContent.title}}</span>
+            <a @click="page = 1000">下一章</a>
+          </div>
+        </div>
+      </transition>
+      <transition name="popup">
+        <div class="opt-view after-border setting-view" v-show="showSetting">
+          <div class="font after-border">
+            <a @click="fz--"> A-</a>
+            <a @click="fz ++"> A+</a>
+          </div>
+          <div class="bg-view">
+            <div class="bg-item" v-for="(item, index) in bgArray" :class="{'selected': item == bg}">
+              <label>
+                <input type="radio" name="bg" v-model="bg" :value="item">
+                {{item}}
+              </label>
+            </div>
+          </div>
+        </div>
+      </transition>
+      <div class="footer">
+        <div class="btn-group">
+          <a @click.stop="showMenu = !showMenu"><i class="xs-icon xs-icon-mulu"></i><h4>目录</h4></a>
+          <a @click.stop="showRate = !showRate"><i class="xs-icon xs-icon-jindu"></i><h4>进度</h4></a>
+          <a @click.stop="showSetting = !showSetting"><i class="xs-icon xs-icon-shezhi"></i><h4>设置</h4></a>
+          <a ><i class="xs-icon xs-icon-yejian"></i> <h4>夜间</h4></a>
+          <router-link :to="'/Info/' + read.id"><i class="xs-icon xs-icon-neirong"></i><h4>详情</h4></router-link>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -29,6 +99,7 @@
 <script>
 import util from '@/util'
 import { mapState } from 'vuex'
+import moment from 'moment'
 export default {
   name: 'read',
   computed: {
@@ -46,6 +117,17 @@ export default {
       return util.objectFindByKey(this.bookrack, 'id', this.read.id)
     }
   },
+  filters: {
+    spaceToP (value) {
+      if (value) {
+        return value.replace(/\s/g, '</p><p>')
+      }
+    },
+    uMoment (value) {
+      moment.locale('zh-cn')
+      return moment(value).fromNow()
+    }
+  },
   directives: {
     'tocContent': {
       bind (el, binding) {
@@ -60,19 +142,56 @@ export default {
   },
   data () {
     return {
+      showOpt: false,
+      showsource: false,
+      source: [],
+      showMenu: false,
+      showRate: false,
+      showSetting: false,
       page: 1,
       count: 1,
       clientWidth: '',
       fz: 21,
       lineHeight: 1.8,
-      bc: '#123',
-      tocs: []
+      bg: '#123',
+      bgArray: ['#123', 'blue', 'red', 'orange'],
+      time: new Date().toLocaleTimeString()
     }
   },
   methods: {
     getCount (count, width) {
       this.count = count
       this.clientWidth = width
+    },
+    getSource () {
+      this.showsource = !this.showsource
+      if (this.showsource) {
+        const self = this
+        this.$http.get('https://xs.htmlbiji.com/index.php', {
+          params: {
+            'url': `/toc?view=summary&book=${this.read.id}`
+          }
+        })
+        .then(function (response) {
+          self.source = response.data
+        })
+      }
+    },
+    exchangesource (id) {
+      const self = this
+      this.$http.get(`https://xs.htmlbiji.com/index.php`, {
+        params: {
+          'url': `/toc/${id}?view=chapters`
+        }
+      })
+      .then(function (response) {
+        self.$store.commit('setRead', {
+          'tocs': response.data.chapters,
+          'tocContent': '',
+          'nextContent': '',
+          'preContent': ''
+        })
+      })
     },
     getConent (id, callback) {
       const self = this
@@ -85,14 +204,27 @@ export default {
       .then(function (response) {
         if (response.data.ok) {
           if (callback && typeof callback === 'function') {
-            callback(response.data)
+            response.data.chapter.body = response.data.chapter.body.replace(/\s/g, '</p><p>')
           }
         } else {
           self.$parent.loading = {
             show: true,
-            content: response.dara.chapter
+            content: '获取章节内容失败'
           }
+          response.data = {
+            chapter: {
+              body: '获取章节内容失败'
+            }
+          }
+          setTimeout(function () {
+            self.$parent.loading = {
+              show: false,
+              content: '加载中'
+            }
+            self.showOpt = true
+          }, 2000)
         }
+        callback(response.data)
       })
     }
   },
@@ -109,7 +241,6 @@ export default {
         } else {
           this.$parent.loading = {
             show: true,
-            icon: 3,
             content: '已是第一张'
           }
           const self = this
@@ -134,7 +265,6 @@ export default {
           this.page = oldValue
           this.$parent.loading = {
             show: true,
-            icon: 3,
             content: '获取最新章节'
           }
           const self = this
@@ -206,14 +336,17 @@ export default {
   },
   created () {
     this.$parent.loading = {
-      show: true,
-      icon: 1
+      show: true
     }
     if (window.localStorage.getItem('read') === null) {
       this.$router.push('/Search')
     }
     this.$store.commit('setRead', JSON.parse(window.localStorage.getItem('read')))
     const self = this
+    setInterval(function () {
+      self.time = new Date().toLocaleTimeString()
+    }, 1000)
+
     if (this.read.tocs.length <= 0) {
       this.$http.get(`https://xs.htmlbiji.com/index.php`, {
         params: {
@@ -272,23 +405,35 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   .read-view {
+    padding: 0 15px;
+    height: 100vh;
+    position: relative;
+    z-index: 1;
+    color: #fff;
     .head {
       position: fixed;
       top: 0;
       width: 100%;
       height: 30px;
+      line-height: 30px;
+      font-size: 14px;
+      text-align: left;
     }
     .read-content {
       position: absolute;
       top: 30px;
-      bottom: 10px;
+      bottom: 20px;
+      left: 15px;
+      right: 15px;
       overflow: hidden;
-
+      p {
+        margin: 2px 0;
+        text-indent: 2em;
+      }
       article {
         height: 100%;
-        margin: 0 16px;
         overflow: hidden;
       }
 
@@ -304,6 +449,9 @@ export default {
     .count {
       position: fixed;
       bottom: 0;
+      left: 15px;
+      right: 15px;
+      text-align: left;
     }
     .action-view {
       .left {
@@ -322,11 +470,106 @@ export default {
       }
       .center {
         position: absolute;
-        width: 100px;
-        height: 100px;
+        width: 200px;
+        height: 200px;
         top: 50%;
         left: 50%;
         transform: translate3d(-50%, -50%, 0);
+      }
+    }
+  }
+  .option-view {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+    .head {
+      background-color: rgba(0, 0, 0, .9);
+      position: relative;
+      color: #fff;
+      height: 30px;
+      padding: 3px 0;
+      line-height: 30px;
+      a {
+        color: #fff;
+        font-size: 20px;
+        vertical-align: -2px;
+        margin: 0 15px;
+      }
+      .exchange {
+        float: right;
+        margin-right: 15px;
+      }
+    }
+    .source {
+      position: relative;
+      left: 20%;
+      right: 0;
+      height: 300px;
+      background-color: rgba(0, 0, 0, .9);
+      text-align: left;
+      margin-left: -15px;
+      padding: 15px;
+      overflow-y: scroll;
+    }
+    .popup-view {
+      bottom: 50px;
+      background-color: rgba(0, 0, 0, .9);
+      overflow: scroll;
+      text-align: left;
+      z-index: 2;
+      .tocs-header {
+        background-color: rgba(0, 0, 0, 1);
+      }
+    }
+    .opt-view {
+      position: fixed;
+      bottom: 50px;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 0, 0, 1);
+      padding: 10px;
+    }
+    .bg-view {
+      display: flex;
+      margin: 10px -5px;
+      .bg-item {
+        height: 30px;
+        flex: 1;
+        padding: 0 5px;
+        input {
+          display: none;
+        }
+        label {
+          width: 100%;
+          height: 100%;
+          border-radius: 3px;
+          border: 1px solid #ddd;
+          display: inline-block;
+        }
+      }
+    }
+    .footer {
+      background-color: rgba(0, 0, 0, 1);
+      position: absolute;
+      bottom: 0;
+      height: 30px;
+      padding: 10px 0;
+      width: 100%;
+      z-index: 3;
+      .btn-group {
+        display: flex;
+        a {
+          flex: 20%;
+          color: #fff;
+        }
+        h4 {
+          font-size: 14px;
+          margin: 0;
+          line-height: 1;
+        }
       }
     }
   }

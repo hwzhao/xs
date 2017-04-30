@@ -16,13 +16,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-.xs-icon-loading:before { content: "\e6df"; }
 
-.xs-icon-loading1:before { content: "\e6f4"; }
+.xs-icon-shezhi:before { content: "\e600"; }
 
-.xs-icon-loading2:before { content: "\e645"; }
-
-.xs-icon-loading3:before { content: "\e603"; }
+.xs-icon-yejian:before { content: "\e601"; }
 
 .xs-icon-close:before { content: "\e60d"; }
 
@@ -32,6 +29,16 @@
 
 .xs-icon-search:before { content: "\e6ac"; }
 
+.xs-icon-rijian:before { content: "\e8cb"; }
+
+.xs-icon-jindu:before { content: "\e690"; }
+
+.xs-icon-loading:before { content: "\e6df"; }
+
+.xs-icon-loading3:before { content: "\e603"; }
+
+.xs-icon-loading2:before { content: "\e645"; }
+
 .xs-icon-sousuo:before { content: "\e86e"; }
 
 .xs-icon-neirong:before { content: "\e889"; }
@@ -39,3 +46,5 @@
 .xs-icon-mulu:before { content: "\e890"; }
 
 .xs-icon-shijian:before { content: "\e8a9"; }
+
+.xs-icon-loading1:before { content: "\e6f4"; }

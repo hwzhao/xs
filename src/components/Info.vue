@@ -146,94 +146,97 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
+<style lang="scss">
 @import "../styles/style.scss";
-.header {
-  display: flex;
-  padding: 10px 0;
-  position: fixed;
-  align-items: center;
-  width: 100%;
-  background-color: #fff;
-  top: 0;
-  z-index: 2;
-  .xs-icon-back {
-    font-size: 25px;
-    vertical-align: middle;
-    padding: 0 8px;
-    color: #686868;
-  }
-  p {
-    text-align: center;
-  }
-}
-.content {
-  padding-top: 60px;
-  padding-bottom: 60px;
-  padding-left: 15px;
-  padding-right: 15px;
-  .basic {
-    display: flex;
-    align-items: center;
-    margin-bottom: 25px;
+.info {
 
-    .cover {
-      width: 110px;
-      height: 150px;
-      margin-right: 15px;
+  .header {
+    display: flex;
+    padding: 10px 0;
+    position: fixed;
+    align-items: center;
+    width: 100%;
+    background-color: #fff;
+    top: 0;
+    z-index: 2;
+    .xs-icon-back {
+      font-size: 25px;
+      vertical-align: middle;
+      padding: 0 8px;
+      color: #686868;
     }
-    .basic-info {
-      text-align: left;
-      font-size: 16px;
-      color: #0d0d0d;
-      .title {
-        font-weight: bold;
-        margin-bottom: 3px;
+    p {
+      text-align: center;
+    }
+  }
+  .content {
+    padding-top: 60px;
+    padding-bottom: 60px;
+    padding-left: 15px;
+    padding-right: 15px;
+    .basic {
+      display: flex;
+      align-items: center;
+      margin-bottom: 25px;
+
+      .cover {
+        width: 110px;
+        height: 150px;
+        margin-right: 15px;
       }
-      .author {
-        margin-bottom: 3px;
-        span {
-          color: $default-color;
+      .basic-info {
+        text-align: left;
+        font-size: 16px;
+        color: #0d0d0d;
+        .title {
+          font-weight: bold;
+          margin-bottom: 3px;
+        }
+        .author {
+          margin-bottom: 3px;
+          span {
+            color: $default-color;
+          }
+        }
+        .word {
+          margin-bottom: 3px;
         }
       }
-      .word {
-        margin-bottom: 3px;
-      }
     }
   }
-}
-.menu {
-  overflow: hidden;
-  line-height: 40px;
-  margin-bottom: 25px;
-  .menu-l {
-    float: left;
+  .menu {
+    overflow: hidden;
+    line-height: 40px;
+    margin-bottom: 25px;
+    .menu-l {
+      float: left;
+    }
+    .menu-r {
+      float: right;
+      max-width: 70%;
+    }
   }
-  .menu-r {
-    float: right;
-    max-width: 70%;
+  .intro {
+    text-align: justify;
+    margin-bottom: 25px;
   }
-}
-.intro {
-  text-align: justify;
-  margin-bottom: 25px;
-}
-.footer {
-  position: fixed;
-  display: flex;
-  background-color: #fff;
-  bottom: 0;
-  height: 60px;
-  width: 100%;
-  line-height: 60px;
-  .footer-item {
-    flex: 1;
-    display: inline-block;
-    .xs-btn {
-      background-color: $default-color;
-      padding: 10px 30px;
-      color: #fff;
-      border-radius: 25px;
+  .footer {
+    position: fixed;
+    display: flex;
+    background-color: #fff;
+    bottom: 0;
+    height: 60px;
+    width: 100%;
+    line-height: 60px;
+    .footer-item {
+      flex: 1;
+      display: inline-block;
+      .xs-btn {
+        background-color: $default-color;
+        padding: 10px 30px;
+        color: #fff;
+        border-radius: 25px;
+      }
     }
   }
 }
