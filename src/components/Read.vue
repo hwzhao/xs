@@ -1,33 +1,35 @@
 <template lang="html">
   <div class="read-view" :style="{'background-color': bg}">
-    <div class="head">
-      {{read.tocContent.title}}
-    </div>
-    <div class="read-content" :style="{'font-size': `${fz}px`, 'line-height': lineHeight}">
-      <article >
-        <section class="read" v-tocContent="{'methods': getCount}" :style="readStyle" >
-          <p v-html="read.tocContent.body"></p>
-        </section>
-      </article>
-    </div>
-    <div class="count" >
-      {{page}}/ {{count}}
-      <div class="time" style="float: right;">
-        {{time}}
+    <!-- 内容 -->
+    <div class="content-view">
+      <div class="head">
+        {{read.tocContent.title}}
+      </div>
+      <div class="read-content" :style="{'font-size': `${fz}px`, 'line-height': lineHeight}">
+        <article >
+          <section class="read" v-tocContent="{'methods': getCount}" :style="readStyle" >
+            <p v-html="read.tocContent.body"></p>
+          </section>
+        </article>
+      </div>
+      <div class="count" v-show="!showOpt">
+        {{page}}/ {{count}}
+        <div class="time" style="float: right;">
+          {{time}}
+        </div>
       </div>
     </div>
+    <!-- end内容 -->
 
-    <div class="action-view">
-      <div class="left" @click="page = page - 1">
-
-      </div>
-      <div class="center" @click.stop="showOpt = true">
-
-      </div>
-      <div class="right" @click="page = page + 1">
-
-      </div>
+    <!-- 翻页效果区 -->
+    <div class="action-view" v-show="!showOpt">
+      <div class="left" @click="page = page - 1"> </div>
+      <div class="center" @click.stop="showOpt = true"></div>
+      <div class="right" @click="page = page + 1"></div>
     </div>
+    <!-- end翻页效果区 -->
+
+    <!-- 设置区 -->
     <div class="option-view" @click="showOpt = false" v-show="showOpt">
       <div class="head">
         <router-link to="/" class="xs-icon-back xs-icon"></router-link>
@@ -37,7 +39,7 @@
       </div>
       <div class="source before-border" v-show="showsource">
         <ul>
-          <li v-for="(item, index) in source" @click.stop="exchangesource(item._id)">
+          <li v-for="(item, index) in source" @click.stop="exchangesource(item._id)" v-show="item.source !== 'zhuishuvip'">
             <div class="">
               {{item.name}}
               {{item.updated | uMoment}}
@@ -47,13 +49,13 @@
         </ul>
       </div>
       <transition name="popup">
-        <div class="popup-view  after-border" v-show="showMenu">
+        <div class="popup-view  after-border" v-show="showToc">
           <div class="tocs ">
             <div class="tocs-header after-boeder">
-              目录
+              目录 <a @click.stop="reverseToc" style="float: right" hidden="hidden">{{read.tocReverse ? '正序' : '倒序'}}</a>
             </div>
             <ul>
-              <li v-for="(menu, index) in read.tocs" @click="goRead(index)">{{menu.title}}{{index}}</li>
+              <li v-for="(toc, index) in read.tocs" @click="goRead(index)" :class="{'active': read.tocId == index}">{{toc.title}}{{index}}</li>
             </ul>
           </div>
         </div>
@@ -85,7 +87,7 @@
       </transition>
       <div class="footer">
         <div class="btn-group">
-          <a @click.stop="showMenu = !showMenu"><i class="xs-icon xs-icon-mulu"></i><h4>目录</h4></a>
+          <a @click.stop="showToc = !showToc"><i class="xs-icon xs-icon-mulu"></i><h4>目录</h4></a>
           <a @click.stop="showRate = !showRate"><i class="xs-icon xs-icon-jindu"></i><h4>进度</h4></a>
           <a @click.stop="showSetting = !showSetting"><i class="xs-icon xs-icon-shezhi"></i><h4>设置</h4></a>
           <a ><i class="xs-icon xs-icon-yejian"></i> <h4>夜间</h4></a>
@@ -93,6 +95,7 @@
         </div>
       </div>
     </div>
+    <!-- end设置区 -->
   </div>
 </template>
 
@@ -107,28 +110,27 @@ export default {
       'read': state => state.read,
       'bookrack': state => state.bookrack
     }),
+    // 翻页效果
     readStyle () {
       return {
         'transform': `translateX(-${(this.page - 1) * this.clientWidth}px)`,
         'transition': (this.page > 1) ? 'all .3s' : 'none'
       }
     },
+    // 书架id
     rackId () {
       return util.objectFindByKey(this.bookrack, 'id', this.read.id)
     }
   },
   filters: {
-    spaceToP (value) {
-      if (value) {
-        return value.replace(/\s/g, '</p><p>')
-      }
-    },
     uMoment (value) {
+      // 转换时间
       moment.locale('zh-cn')
       return moment(value).fromNow()
     }
   },
   directives: {
+    // 获取内容页数
     'tocContent': {
       bind (el, binding) {
         const count = el.scrollWidth / el.clientWidth
@@ -145,7 +147,7 @@ export default {
       showOpt: false,
       showsource: false,
       source: [],
-      showMenu: false,
+      showToc: false,
       showRate: false,
       showSetting: false,
       page: 1,
@@ -159,10 +161,30 @@ export default {
     }
   },
   methods: {
+    reverseToc () {
+      this.$store.commit('setRead', {
+        'tocs': this.read.tocs.reverse(),
+        'tocReverse': !this.read.tocReverse
+      })
+    },
+    // 目录跳转
+    goRead (index) {
+      this.$store.commit('setRead', {
+        'tocId': index,
+        'tocContent': '',
+        'nextContent': '',
+        'preContent': ''
+      })
+    },
+    // 获取分页和页面宽度
     getCount (count, width) {
       this.count = count
       this.clientWidth = width
     },
+    /*
+     * 获取来源
+     * api ： /toc?view=summary&book={小说id}
+    */
     getSource () {
       this.showsource = !this.showsource
       if (this.showsource) {
@@ -177,6 +199,12 @@ export default {
         })
       }
     },
+    /*
+     * 切换来源
+     * 获取章节列表
+     * api ： /toc/{来源id}?view=chapters
+     * 设置当前章节内容为空
+    */
     exchangesource (id) {
       const self = this
       this.$http.get(`https://xs.htmlbiji.com/index.php`, {
@@ -187,12 +215,17 @@ export default {
       .then(function (response) {
         self.$store.commit('setRead', {
           'tocs': response.data.chapters,
+          'sourceId': id,
           'tocContent': '',
           'nextContent': '',
           'preContent': ''
         })
       })
     },
+    /*
+     * 获取章节内容
+     * api ： /chapter/{章节链接}?k=2124b73d7e2e1945&t=1468223717
+    */
     getConent (id, callback) {
       const self = this
       this.$http.get('https://xs.htmlbiji.com/index.php', {
@@ -229,6 +262,32 @@ export default {
     }
   },
   watch: {
+    // 设置的显示与隐藏
+    showOpt (value) {
+      if (value === false) {
+        this.showRate = this.showsource = this.showToc = this.showSetting = false
+      }
+    },
+    showRate (value) {
+      if (value === true) {
+        this.showsource = this.showToc = this.showSetting = false
+      }
+    },
+    showsource (value) {
+      if (value === true) {
+        this.showRate = this.showToc = this.showSetting = false
+      }
+    },
+    showToc (value) {
+      if (value === true) {
+        this.showsource = this.showRate = this.showSetting = false
+      }
+    },
+    /*
+     * 监测页码
+     * 当page === 0 上一章
+     * page > 章节总页数 下一章
+    */
     page (value, oldValue) {
       if (value === 0) {
         if (this.read.tocId >= 1) {
@@ -301,8 +360,11 @@ export default {
         page: value
       })
     },
+    /*
+     * 监测章节id
+     * 其实主要是监测是否有上一章节和下一章节
+    */
     'read.tocId' (value) {
-      // 检查是否有上一章和下一章 如果没有则获取
       if (value && value >= 0) {
         const self = this
         if (!this.read.preContent) {
@@ -321,6 +383,7 @@ export default {
         }
       }
     },
+    // 单独监测当前章节内容
     'read.tocContent' (value) {
       if (value === '' || !value.body && this.read.tocId > 0) {
         const self = this
@@ -343,10 +406,11 @@ export default {
     }
     this.$store.commit('setRead', JSON.parse(window.localStorage.getItem('read')))
     const self = this
+    // 显示时间
     setInterval(function () {
       self.time = new Date().toLocaleTimeString()
     }, 1000)
-
+    // 获取章节目录及内容
     if (this.read.tocs.length <= 0) {
       this.$http.get(`https://xs.htmlbiji.com/index.php`, {
         params: {
@@ -374,6 +438,7 @@ export default {
     }
     self.page = self.read.page
   },
+  // 离开前加入书架及更新书架
   beforeRouteLeave (to, from, next) {
     if (this.rackId) {
       this.$store.commit('addBbookrack', {
@@ -419,7 +484,7 @@ export default {
       height: 30px;
       line-height: 30px;
       font-size: 14px;
-      text-align: left;
+      text-align: center;
     }
     .read-content {
       position: absolute;
@@ -475,6 +540,7 @@ export default {
         top: 50%;
         left: 50%;
         transform: translate3d(-50%, -50%, 0);
+        z-index: 1;
       }
     }
   }
@@ -486,12 +552,13 @@ export default {
     left: 0;
     z-index: 2;
     .head {
-      background-color: rgba(0, 0, 0, .9);
+      background-color: rgba(0, 0, 0, 0);
       position: relative;
       color: #fff;
       height: 30px;
       padding: 3px 0;
       line-height: 30px;
+      text-align: left;
       a {
         color: #fff;
         font-size: 20px;
@@ -507,8 +574,9 @@ export default {
       position: relative;
       left: 20%;
       right: 0;
-      height: 300px;
-      background-color: rgba(0, 0, 0, .9);
+      max-height: 300px;
+      background-color: rgba(255, 255, 255, 1);
+      color: #000;
       text-align: left;
       margin-left: -15px;
       padding: 15px;
@@ -516,12 +584,15 @@ export default {
     }
     .popup-view {
       bottom: 50px;
-      background-color: rgba(0, 0, 0, .9);
+      background-color: rgba(255, 255, 255, 1);
+      color: #000;
       overflow: scroll;
       text-align: left;
       z-index: 2;
       .tocs-header {
-        background-color: rgba(0, 0, 0, 1);
+        padding: 0 15px;
+        background-color: rgba(255, 255, 255, 1);
+        color: #000;
       }
     }
     .opt-view {
@@ -529,8 +600,9 @@ export default {
       bottom: 50px;
       left: 0;
       right: 0;
-      background-color: rgba(0, 0, 0, 1);
+      background-color: rgba(255, 255, 255, 1);
       padding: 10px;
+      color: #000;
     }
     .bg-view {
       display: flex;
@@ -552,7 +624,7 @@ export default {
       }
     }
     .footer {
-      background-color: rgba(0, 0, 0, 1);
+      background-color: rgba(0, 0, 0, 0);
       position: absolute;
       bottom: 0;
       height: 30px;

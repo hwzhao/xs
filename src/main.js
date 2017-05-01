@@ -30,11 +30,13 @@ const store = new Vuex.Store(
       searchList: [],
       read: {
         id: 0,
+        sourceId: '',
         title: '',
         cover: '',
         tocId: 0,
         page: 1,
         tocs: [],
+        tocReverse: false,
         preContent: '',
         tocContent: '',
         nextContent: ''
